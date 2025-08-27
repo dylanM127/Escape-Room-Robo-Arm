@@ -59,9 +59,9 @@ void updateBar(unsigned long count){
 	int bar = 0.8*count;
 	int val = bar/5; 
 
-	lcd.setCursor(val, 1);
+	lcd.setCursor(val-1, 1);
 	lcd.write(5);
 	
-	lcd.setCursor(val+1, 1);
+	lcd.setCursor(val, 1);
 	lcd.write(0);
 }
