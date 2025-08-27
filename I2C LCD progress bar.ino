@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
+// Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 byte zero [] = {
@@ -24,7 +25,8 @@ byte five [] = {
 	B11111
 };
 
- int prevVal = 0;
+int prevCount = 0;
+
 void setup()
 {
 	Serial.begin(9600);
@@ -55,14 +57,10 @@ void loop(){
 
 void updateBar(unsigned long count){
 	int bar = 0.8*count;
-	int val = bar/5; //givs value between 0 and 16 for the character slot on the disdplay. 
-	//Serial.println (val);
-	int diff = val - prevVal;
-	int prevVal = val;
-	if (diff >= 0){
+	int val = bar/5; 
+
 	lcd.setCursor(val, 1);
 	lcd.write(5);
-	}
 	
 	lcd.setCursor(val+1, 1);
 	lcd.write(0);
