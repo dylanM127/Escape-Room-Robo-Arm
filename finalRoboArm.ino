@@ -73,6 +73,7 @@ void loop() {
 
   int angleX = map(valueX, 0, 1023, 0, 180);
   myservoX.write(angleX);
+ 
 
   //int angleY = map(valueY, 0, 1023, 0, 180);
   //myservoY.write(angleY);
@@ -91,7 +92,7 @@ void loop() {
     myStepper.step(-100);
   }
   
-  if (i < 100 && speed == 0) {
+  if (i < 100 && speed <= 5 && speed >= -5 && angleX == 90 ) {
     if (currentMillis - previousP >= pInterval) {
       previousP = currentMillis;
 
@@ -102,7 +103,7 @@ void loop() {
       updateBar(i);
     }
   } else {
-    if (i = 100) {
+    if (i > 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) {
       if (currentMillis - previousN >= nInterval) {
         previousN = currentMillis;
 
