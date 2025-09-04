@@ -1,3 +1,7 @@
+
+// I have been updateing this repositroy as I go 
+// so you can see the history. 
+
 #include <Servo.h>
 #include <Stepper.h>
 #include <Wire.h>
@@ -92,8 +96,18 @@ void loop() {
     myStepper.step(-100);
   }
   
-  if (i < 100 && speed <= 5 && speed >= -5 && angleX == 90 ) {
-    if (currentMillis - previousP >= pInterval) {
+  if (i > 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) { //Detects if there is any input. 
+     if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
+      previousN = currentMillis;
+
+      i = i - 1;
+      lcd.setCursor(0, 0);
+      lcd.print(i);
+      lcd.print("%  ");
+      updateBar(i);
+    }
+  }else {// Otherwise increse. 
+    if (i < 100 && currentMillis - previousP >= pInterval) {
       previousP = currentMillis;
 
       i = i + 1;
@@ -101,18 +115,6 @@ void loop() {
       lcd.print(i);
       lcd.print("%  ");
       updateBar(i);
-    }
-  } else {
-    if (i > 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) {
-      if (currentMillis - previousN >= nInterval) {
-        previousN = currentMillis;
-
-        i = i - 1;
-        lcd.setCursor(0, 0);
-        lcd.print(i);
-        lcd.print("%  ");
-        updateBar(i);
-      }
     }
   }
 }
