@@ -1,86 +1,60 @@
-#include <SPI.h>      //include the SPI bus library
-#include <MFRC522.h>  //include the RFID reader library
+#include <SPI.h>
+#include <MFRC522.h>
 
-#define SS_PIN 53  //slave select pin
-#define RST_PIN 5  //reset pin
+#define RST_PIN 5
+#define SS_PIN 53
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);  // instatiate a MFRC522 reader object.
-MFRC522::MIFARE_Key key;           //create a MIFARE_Key struct named 'key', which will hold the card information
+byte readCard[4];
+String MasterTag = "5A8D981A";  // REPLACE this Tag ID with your Tag ID!!!
+String tagID = "";
 
-//this is the block number we will write into and then read.
-int block = 2;
-
-byte blockcontent[16] = { "Last-Minute-Engf" };  //an array with 16 bytes to be written into one of the 64 card blocks is defined
-//byte blockcontent[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};  //all zeros. This can be used to delete a block.
-
-//This array is used for reading out a block.
-byte readbackblock[18];
+// Create instances
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 void setup() {
-  Serial.begin(9600);  // Initialize serial communications with the PC
-  SPI.begin();         // Init SPI bus
-  mfrc522.PCD_Init();  // Init MFRC522 card (in case you wonder what PCD means: proximity coupling device)
-  Serial.println("Scan a MIFARE Classic card");
-
-  // Prepare the security key for the read and write functions.
-  for (byte i = 0; i < 6; i++) {
-    key.keyByte[i] = 0xFF;  //keyByte is defined in the "MIFARE_Key" 'struct' definition in the .h file of the library
-  }
+  // Initiating
+  SPI.begin();         // SPI bus
+  mfrc522.PCD_Init();  // MFRC522
+  Serial.begin(9600);
+  Serial.println();
 }
 
 void loop() {
-  // Look for new cards
-  if (!mfrc522.PICC_IsNewCardPresent()) {
-    return;
-  }
 
-  // Select one of the cards
-  if (!mfrc522.PICC_ReadCardSerial()) {
-    return;
-  }
-  Serial.println("card selected");
+  //Wait until new tag is available
+  while (getID()) {
 
-  //read the block back
-  readBlock(block, readbackblock);
-  //uncomment below line if you want to see the entire 1k memory with the block written into it.
-  //mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
+    if (tagID == MasterTag) {
 
-  //print the block contents
-  Serial.print("read block: ");
-  for (int j = 0; j < 16; j++) {
-    Serial.write(readbackblock[j]);
+      Serial.println("Access Granted");
 
-  if (readbackblock[j] == blockcontent[16]){
-    Serial.println("True");
+      // You can write any code here like opening doors, switching on a relay, lighting up an LED, or anything else you can think of.
+    } else {
+      Serial.println(" Access Denied!");
+      Serial.println(tagID);
     }
-  }
-  Serial.println("");
 
- 
-  
+    delay(2000);
+
+
+  }
 }
 
-//Read specific block
-int readBlock(int blockNumber, byte arrayAddress[]) {
-  int largestModulo4Number = blockNumber / 4 * 4;
-  int trailerBlock = largestModulo4Number + 3;  //determine trailer block for the sector
-
-  //authentication of the desired block for access
-  byte status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerBlock, &key, &(mfrc522.uid));
-
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print("PCD_Authenticate() failed (read): ");
-    Serial.println(mfrc522.GetStatusCodeName(status));
-    return 3;  //return "3" as error message
+//Read new tag if available
+boolean getID() {
+  // Getting ready for Reading PICCs
+  if (!mfrc522.PICC_IsNewCardPresent()) {  //If a new PICC placed to RFID reader continue
+    return false;
   }
-
-  //reading a block
-  byte buffersize = 18;                                                  //we need to define a variable with the read buffer size, since the MIFARE_Read method below needs a pointer to the variable that contains the size...
-  status = mfrc522.MIFARE_Read(blockNumber, arrayAddress, &buffersize);  //&buffersize is a pointer to the buffersize variable; MIFARE_Read requires a pointer instead of just a number
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print("MIFARE_read() failed: ");
-    Serial.println(mfrc522.GetStatusCodeName(status));
-    return 4;  //return "4" as error message
+  if (!mfrc522.PICC_ReadCardSerial()) {  //Since a PICC placed get Serial and continue
+    return false;
   }
-  Serial.println("block was read");
+  tagID = "";
+  for (uint8_t i = 0; i < 4; i++) {  // The MIFARE PICCs that we use have 4 byte UID
+    //readCard[i] = mfrc522.uid.uidByte[i];
+    tagID.concat(String(mfrc522.uid.uidByte[i], HEX));  // Adds the 4 bytes in a single String variable
+  }
+  tagID.toUpperCase();
+  mfrc522.PICC_HaltA();  // Stop reading
+  return true;
 }
