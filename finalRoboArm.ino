@@ -55,11 +55,15 @@ int pInterval = 50;
 int nInterval = 200;
 int i = 0;
 bool access = false;
+int speed = 0;
+int angleX = 90;
+int angleY = 90;
 
 const int servoX = 2;
 const int servoY = 3;
 const int button = 40;
 const int backlight = 33;
+
 
 const int stepsPerRevolution = 2048;
 
@@ -93,56 +97,17 @@ void loop() {
 if (access == true){
   valueX = analogRead(A0);  // read X axis value [0..1023]
   valueY = analogRead(A1);  // read Y axis value [0..1023]
-
-  int angleX = map(valueX, 0, 1023, 0, 180);
+if (i > 0){
+  angleX = map(valueX, 0, 1023, 0, 180);
   myservoX.write(angleX);
  
 
   int angleY = map(valueY, 0, 1023, 0, 180);
   myservoY.write(angleY);
 
-  int speed = map(valueY, 530, 1023, 0, 15);
+  speed = map(valueY, 530, 1023, 0, 15);
 
-  //Serial.println(speed);
-
-  
-    if (speed > 5) {
-    myStepper.setSpeed(speed);
-    myStepper.step(100);
-  }
-
-  if (speed < -5) {
-    myStepper.setSpeed(-speed);
-    myStepper.step(-100);
-  }
-
-  if (i > 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) { //Detects if there is any input. 
-     if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
-      previousN = currentMillis;
-
-      i = i - 1;
-      lcd.setCursor(0, 0);
-      lcd.print(i);
-      lcd.print("%  ");
-      updateBar(i);
-    }
-  }else {
-    if (i == 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) {
-      digitalWrite(backlight, LOW);
-      }else {  // Otherwise increse. 
-    if (i < 100 && currentMillis - previousP >= pInterval) {
-      previousP = currentMillis;
-
-      digitalWrite(backlight, HIGH);
-
-      i = i + 1;
-      lcd.setCursor(0, 0);
-      lcd.print(i);
-      lcd.print("%  ");
-      updateBar(i);
-    } 
-  }
-  }
+ 
   
   if (speed > 5) {
     myStepper.setSpeed(speed);
@@ -153,8 +118,11 @@ if (access == true){
     myStepper.setSpeed(-speed);
     myStepper.step(-100);
   }
+}
+  Serial.println(angleY);
+  Serial.println(angleX);
 
-  if (i > 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) { //Detects if there is any input. 
+  if (i > 0 && (speed > 5 || speed < -5 || angleX != 90 )) { //Detects if there is any input. 
      if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
       previousN = currentMillis;
 
@@ -165,7 +133,7 @@ if (access == true){
       updateBar(i);
     }
   }else {
-    if (i == 0 && (speed > 5 || speed < -5 || angleX > 90 || angleX < 90)) {
+    if (i == 0 && (speed > 5 || speed < -5 || angleX != 90 )) {
       digitalWrite(backlight, LOW);
       }else {  // Otherwise increse. 
     if (i < 100 && currentMillis - previousP >= pInterval) {
