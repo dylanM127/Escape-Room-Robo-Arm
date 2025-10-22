@@ -1,7 +1,5 @@
-
-// I have been updateing this repositroy as I go 
+// I have been updateing the repositroy as I go 
 // so you can see the history. 
-
 #include <Servo.h>
 #include <Stepper.h>
 #include <Wire.h>
@@ -19,7 +17,7 @@ String tagID = "";
 // Create instances
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
-Servo myservoX, myservoY;
+Servo myservoX, myservoY, myservoC;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -58,9 +56,11 @@ bool access = false;
 int speed = 0;
 int angleX = 90;
 int angleY = 90;
+int angleC = 90;
 
 const int servoX = 2;
 const int servoY = 3;
+const int servoC = 4;
 const int button = 40;
 const int backlight = 33;
 
@@ -87,6 +87,7 @@ void setup() {
 
   myservoX.attach(servoX);
   myservoY.attach(servoY);
+  myservoC.attach(servoC);
 
   pinMode(button, INPUT);
   pinMode(backlight, OUTPUT);
@@ -95,35 +96,39 @@ void setup() {
 void loop() {
   currentMillis = millis();
 if (access == true){
-  valueX = analogRead(A0);  // read X axis value [0..1023]
-  valueY = analogRead(A1);  // read Y axis value [0..1023]
-if (i > 0){
-  angleX = map(valueX, 0, 1023, 0, 180);
-  myservoX.write(angleX);
- 
+    valueX = analogRead(A0);  // read X axis value [0..1023]
+    valueY = analogRead(A1);  // read Y axis value [0..1023]
+    valueC = analogRead(A2); // read the X axis val of joystick 2
+  if (i > 0){
+    angleX = map(valueX, 0, 1023, 0, 180);
+    myservoX.write(angleX);
 
-  int angleY = map(valueY, 0, 1023, 0, 180);
-  myservoY.write(angleY);
+    angleY = map(valueY, 0, 1023, 0, 180);
+    myservoY.write(angleY);
 
-  speed = map(valueY, 530, 1023, 0, 15);
+    angleC = map(valueC, 0, 1023, 0, 180);
+    myservoC.write(angleC);
 
- 
+    speed = map(valueY, 530, 1023, 0, 15);
+
   
-  if (speed > 5) {
-    myStepper.setSpeed(speed);
-    myStepper.step(100);
+    
+    if (speed > 5) {
+      myStepper.setSpeed(speed);
+      myStepper.step(100);
+    }
+
+    if (speed < -5) {
+      myStepper.setSpeed(-speed);
+      myStepper.step(-100);
+    }
   }
 
-  if (speed < -5) {
-    myStepper.setSpeed(-speed);
-    myStepper.step(-100);
-  }
-}
   Serial.println(angleY);
   Serial.println(angleX);
 
-  if (i > 0 && (speed > 5 || speed < -5 || angleX != 90 )) { //Detects if there is any input. 
-     if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
+  if (i > 0 && (speed > 5 || speed < -5 || angleX != 90 || angleY != 90 || angleC != 90)) { //Detects if there is any input. 
+    if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
       previousN = currentMillis;
 
       i = i - 1;
@@ -133,22 +138,22 @@ if (i > 0){
       updateBar(i);
     }
   }else {
-    if (i == 0 && (speed > 5 || speed < -5 || angleX != 90 )) {
-      digitalWrite(backlight, LOW);
-      }else {  // Otherwise increse. 
-    if (i < 100 && currentMillis - previousP >= pInterval) {
-      previousP = currentMillis;
+      if (i == 0 && (speed > 5 || speed < -5 || angleX != 90 angleY != 90 || angleC != 90)) {
+        digitalWrite(backlight, LOW);
+        }else {  // Otherwise increse. 
+      if (i < 100 && currentMillis - previousP >= pInterval) {
+        previousP = currentMillis;
 
-      digitalWrite(backlight, HIGH);
+        digitalWrite(backlight, HIGH);
 
-      i = i + 1;
-      lcd.setCursor(0, 0);
-      lcd.print(i);
-      lcd.print("%  ");
-      updateBar(i);
-    } 
-  }
-  }
+        i = i + 1;
+        lcd.setCursor(0, 0);
+        lcd.print(i);
+        lcd.print("%  ");
+        updateBar(i);
+      } 
+     }
+   }
   }
     while (getID()) {
 
