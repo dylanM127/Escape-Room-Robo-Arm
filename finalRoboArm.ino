@@ -44,6 +44,8 @@ byte five[] = {
 
 int valueX = 0;
 int valueY = 0;
+int valueC = 0;
+
 
 unsigned long currentMillis = 0;
 unsigned long previousP = 0;
@@ -57,6 +59,8 @@ int speed = 0;
 int angleX = 90;
 int angleY = 90;
 int angleC = 90;
+int angleXAdd = 0;
+int angleYAdd = 0;
 
 const int servoX = 2;
 const int servoY = 3;
@@ -96,17 +100,22 @@ void setup() {
 void loop() {
   currentMillis = millis();
 if (access == true){
-    valueX = analogRead(A0);  // read X axis value [0..1023]
-    valueY = analogRead(A1);  // read Y axis value [0..1023]
-    valueC = analogRead(A2); // read the X axis val of joystick 2
+  valueX = analogRead(A0);  // read X axis value [0..1023]
+  valueY = analogRead(A1);  // read Y axis value [0..1023]
+  //valueC = analogRead(A2); // read the X axis val of joystick 2
+  
+  angleXAdd = map(valueX, 511, 1023, 0, 2);
+  angleYAdd = map(valueY, 511, 1023, 0, 5);
+  //angleC = map(valueC, 0, 1023, 0, 180);
+
+  angleX = angleX + angleXAdd;
+  angleY = angleY + angleYAdd;
+
+  
+
   if (i > 0){
-    angleX = map(valueX, 0, 1023, 0, 180);
     myservoX.write(angleX);
-
-    angleY = map(valueY, 0, 1023, 0, 180);
     myservoY.write(angleY);
-
-    angleC = map(valueC, 0, 1023, 0, 180);
     myservoC.write(angleC);
 
     speed = map(valueY, 530, 1023, 0, 15);
@@ -124,11 +133,11 @@ if (access == true){
     }
   }
 
-  Serial.println(angleY);
-  Serial.println(angleX);
+ // Serial.println(angleY);
+  //Serial.println(angleX);
 
-  if (i > 0 && (speed > 5 || speed < -5 || angleX != 90 || angleY != 90 || angleC != 90)) { //Detects if there is any input. 
-    if (currentMillis - previousN >= nInterval) {                       // And if so decrese. 
+  if (i > 0 && (speed > 5 || speed < -5 || angleXAdd != 0 || angleYAdd != 0 /*||*angleC != 90*/)) { //Detects if there is any input. 
+    if (currentMillis - previousN >= nInterval) {                                               // And if so decrese. 
       previousN = currentMillis;
 
       i = i - 1;
@@ -138,7 +147,7 @@ if (access == true){
       updateBar(i);
     }
   }else {
-      if (i == 0 && (speed > 5 || speed < -5 || angleX != 90 angleY != 90 || angleC != 90)) {
+      if (i == 0 && (speed > 5 || speed < -5 || angleXAdd != 0 || angleYAdd != 0 /*|| angleC != 90*/)) {
         digitalWrite(backlight, LOW);
         }else {  // Otherwise increse. 
       if (i < 100 && currentMillis - previousP >= pInterval) {
