@@ -104,7 +104,7 @@ if (access == true){
   valueY = analogRead(A1);  // read Y axis value [0..1023]
   //valueC = analogRead(A2); // read the X axis val of joystick 2
   
-  angleXAdd = map(valueX, 511, 1023, 0, 2);
+  angleXAdd = map(valueX, 511, 1023, 0, 5);
   angleYAdd = map(valueY, 511, 1023, 0, 5);
   //angleC = map(valueC, 0, 1023, 0, 180);
 
@@ -118,7 +118,7 @@ if (access == true){
     myservoY.write(angleY);
     myservoC.write(angleC);
 
-    speed = map(valueY, 530, 1023, 0, 15);
+    speed = map(valueY, 530, 1023, 3, 15);
 
   
     
